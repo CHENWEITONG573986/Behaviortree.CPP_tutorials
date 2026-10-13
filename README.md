@@ -56,6 +56,7 @@ behaviortree_demo/
 | [tutorials14](tutorials14/README.md) | 子树模型与自动重映射 | [14](https://www.behaviortree.dev/docs/tutorial-advanced/tutorial_14_subtree_model) |
 | [tutorials15](tutorials15/README.md) | Mock 与节点替换 | [15](https://www.behaviortree.dev/docs/tutorial-advanced/tutorial_15_replace_rules) |
 | [tutorials16](tutorials16/README.md) | 全局黑板惯用法 | [16](https://www.behaviortree.dev/docs/tutorial-advanced/tutorial_16_global_blackboard) |
+| [ros2_integration](ros2_integration/README.md) | ROS 2 集成（官方 BehaviorTree.ROS2，用 colcon 构建） | [Integration with ROS2](https://www.behaviortree.dev/docs/ros2_integration) |
 
 ## 编译运行某一个教程
 
@@ -85,6 +86,24 @@ cmake --build build
 ## 关于教程 11（Groot2）
 
 `Groot2Publisher` 需要 behaviortree_cpp 在编译时启用 Groot2 接口
-（vcpkg feature `groot`，即 `BTCPP_GROOT_INTERFACE=ON`）。本机当前未启用，
-所以 `tutorials11` 的 CMake 会打印警告并跳过编译，其余教程不受影响。
-启用方法见 [tutorials11/README.md](tutorials11/README.md)。
+（vcpkg feature `groot`，即 `BTCPP_GROOT_INTERFACE=ON`）。本机已启用
+（`vcpkg install "behaviortree-cpp[groot]" --recurse`），所以 `tutorials11` 可以正常编译；
+未启用的机器上它的 CMake 会自动探测、打印警告并跳过，其它教程不受影响。
+详见 [tutorials11/README.md](tutorials11/README.md)。
+
+## ROS 2 集成（额外章节）
+
+除 16 篇编号教程外，官方文档还有一章 **Integration with ROS2**，介绍官方的
+[BehaviorTree.ROS2](https://github.com/BehaviorTree/BehaviorTree.ROS2) 封装库
+（把 ROS 2 的 Action / Service / Topic 包装成 TreeNode，并提供一个 Task Planner 执行器）。
+
+这一章与前面不同：用 **colcon** 构建，并且需要 **BT.CPP 4.6+ 的 ROS 包**
+`ros-humble-behaviortree-cpp`（vcpkg 那版导出的目标名不匹配，不能用）。
+完整说明和一键脚本见 [ros2_integration/README.md](ros2_integration/README.md)：
+
+```bash
+cd ros2_integration
+./setup.sh     # 准备 BT.CPP v4 + 克隆官方仓库（缺依赖时自动下载 deb，免 sudo）
+./build.sh     # colcon build
+./run_demo.sh  # 启动执行器并发送一个行为树目标
+```

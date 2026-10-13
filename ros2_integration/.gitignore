@@ -1,0 +1,8 @@
+# colcon 构建产物
+build/
+install/
+log/
+# setup.sh 生成的本地 BT.CPP 副本（免 sudo 方案）
+prefix/
+# 克隆下来的第三方源码（由 setup.sh 拉取，不入库）
+src/BehaviorTree.ROS2/
