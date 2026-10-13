@@ -7,6 +7,7 @@
       },
       "includePath": [
         "${workspaceFolder}/sample_nodes",
+        "${workspaceFolder}/ros2_integration/src/bt_ros2_tutorial/include/**",
         "/home/rpp/vcpkg/installed/x64-linux/include/**",
         "/opt/ros/humble/include/**",
         "/usr/include/**"
