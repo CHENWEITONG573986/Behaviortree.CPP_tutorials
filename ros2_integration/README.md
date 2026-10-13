@@ -128,6 +128,26 @@ Goal finished with status: SUCCEEDED
 行为树执行结束，最终状态: SUCCESS
 ```
 
+### 3.3 Topic 示例（发布 / 订阅）
+
+```bash
+./run_topic.sh
+```
+
+启动一个“模拟机器人”（发布 `/temperature`、订阅 `/robot_command`），
+然后运行 Topic 版行为树。预期输出：
+
+```
+[PrintValue] === Topic 示例开始 ===
+[CheckTemperature] 还没有收到温度消息          ← 第一次 tick 时还没消息 → 失败重试
+[CheckTemperature] 收到温度 22.00（允许 0.0 ~ 35.0）
+[PublishCommand] 发布指令: hello, robot!
+[PrintValue] 温度正常，已向机器人发送指令
+执行结束（tick 了 2 次），最终状态: SUCCESS
+```
+
+同时“模拟机器人”那边会打印 `收到指令: hello, robot!`——证明话题真的发出去了。
+
 ---
 
 ## 4. 手把手：这个教学示例是怎么写出来的
@@ -138,16 +158,21 @@ Goal finished with status: SUCCEEDED
 bt_ros2_tutorial/
 ├── package.xml / CMakeLists.txt
 ├── action/Countdown.action                     # ① 自定义 Action 接口
-├── behavior_trees/countdown_tree.xml           # ⑥ 行为树定义
+├── behavior_trees/
+│   ├── countdown_tree.xml                       # ⑥ Action+Service 示例的树
+│   └── topic_tree.xml                           # ⑧ Topic 示例的树
 ├── launch/tutorial.launch.xml                  # 一把启动所有节点
 ├── include/bt_ros2_tutorial/
 │   ├── countdown_action.hpp                     # ③ ROS Action -> TreeNode
 │   ├── add_two_ints_service.hpp                 # ④ ROS Service -> TreeNode
-│   └── print_nodes.hpp                          # ⑤ 普通节点（不涉及 ROS）
+│   ├── print_nodes.hpp                          # ⑤ 普通节点（不涉及 ROS）
+│   └── topic_nodes.hpp                          # ⑧ ROS Topic -> TreeNode（发布/订阅）
 └── src/
     ├── countdown_server.cpp                     # ② Action 服务端
     ├── add_two_ints_server.cpp                  # ② Service 服务端
-    └── tutorial_executor.cpp                    # ⑦ 执行器（main）
+    ├── tutorial_executor.cpp                    # ⑦ Action+Service 示例的执行器
+    ├── robot_node.cpp                           # ⑧ 模拟机器人（发布温度/订阅指令）
+    └── topic_executor.cpp                       # ⑧ Topic 示例的执行器
 ```
 
 ### ① 定义自己的 Action 接口（`action/Countdown.action`）
@@ -307,15 +332,71 @@ tree.tickWhileRunning();      // 不需要手动 spin，详见 ③ 的说明
 `RosNodeParams` 是“TreeNode 和 ROS 世界之间的桥”：`nh` 是那个 ROS 节点，
 `default_port_value` 是该节点默认连接的动作/服务名。
 
+### 补充：Topic（发布 / 订阅）节点
+
+Action 和 Service 都是“请求-应答”模型；**Topic** 是第三种通信方式——单向、持续的消息流，
+传感器数据最典型。对应代码：`topic_nodes.hpp` / `robot_node.cpp` / `topic_tree.xml` /
+`topic_executor.cpp`。
+
+**发布节点**继承 `BT::RosTopicPubNode<T>`（注意它其实继承自 `ConditionNode`），
+实现 `setMessage()`，tick 时发布一条消息：
+
+```cpp
+class PublishCommand : public RosTopicPubNode<std_msgs::msg::String>
+{
+  static BT::PortsList providedPorts()
+  { return providedBasicPorts({ InputPort<std::string>("command") }); }
+
+  bool setMessage(std_msgs::msg::String& msg) override
+  { return getInput("command", msg.data); }   // 返回 false → 节点 FAILURE，不发送
+};
+```
+
+**订阅节点**继承 `BT::RosTopicSubNode<T>`，实现 `onTick(last_msg)`：
+
+```cpp
+class CheckTemperature : public RosTopicSubNode<std_msgs::msg::Float64>
+{
+  NodeStatus onTick(const std::shared_ptr<std_msgs::msg::Float64>& last_msg) override
+  {
+    if(!last_msg) return NodeStatus::FAILURE;   // 还没有收到任何消息
+    // ... 判断是否在 [min, max] 内 ...
+  }
+};
+```
+
+> **两个要点**：
+> 1. `onTick` **只能返回 SUCCESS 或 FAILURE**，不能返回 RUNNING。
+> 2. 刚启动时可能还没有消息到达，此时 `last_msg` 是**空指针**。
+
+**那“等消息”怎么写？** 看 `topic_executor.cpp` 里的小技巧——反复 `tickOnce()` 直到成功或超时：
+
+```cpp
+while(std::chrono::steady_clock::now() < deadline) {
+  status = tree.tickOnce();
+  if(status == BT::NodeStatus::SUCCESS) break;
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
+```
+
+**为什么可行**：`Tree` 在每次 tick 结束（返回 SUCCESS/FAILURE）后会自动 `resetStatus()`，
+所以下一次 tick 会**从根节点重新开始**执行整棵树。把 `CheckTemperature` 放在
+`PublishCommand` 之前，就实现了“温度没就绪就不发指令、就绪后只发一次”。
+
+> ⚠️ 别用 `RetryUntilSuccessful` 来等话题消息：它在**单次 tick 内**就把子节点重试完了
+> （源码里是个 `while` 循环），根本来不及等 DDS 消息到达。
+
 ---
 
 ## 5. 运行与观察
 
 ```bash
-./run_tutorial.sh
+./run_tutorial.sh              # Action + Service 示例
+./run_topic.sh                 # Topic 示例
 ```
 
-想单独手动跑（更直观地体会 ROS）：
+想单独手动跑单个例子：`./run_tutorial.sh` / `./run_topic.sh` 已经自动起停依赖节点。
+若想自己体会 ROS，也可以手动来（更直观）：
 
 ```bash
 source /opt/ros/humble/setup.bash
@@ -326,9 +407,14 @@ ros2 launch bt_ros2_tutorial tutorial.launch.xml
 或者分三个终端：
 
 ```bash
+# Action + Service 示例
 ros2 run bt_ros2_tutorial countdown_server
 ros2 run bt_ros2_tutorial add_two_ints_server
 ros2 run bt_ros2_tutorial tutorial_executor
+
+# Topic 示例
+ros2 run bt_ros2_tutorial robot_node
+ros2 run bt_ros2_tutorial topic_executor
 ```
 
 用 ROS 命令行单独验证服务端：
@@ -372,6 +458,11 @@ ros2 service call /add_two_ints example_interfaces/srv/AddTwoInts "{a: 3, b: 4}"
 **Q6：`Address already in use`（端口 1667）？**
 有上一次的残留进程。`run_*.sh` 会在启动前清理；手动排查可 `ss -ltnp | grep 1667`。
 
+**Q7：订阅节点第一次 tick 总是失败？**
+因为话题消息还没到（或 DDS 还没完成“发现”），传给 `onTick` 的是空指针。
+正确做法是像 `topic_executor.cpp` 那样**反复 tick 直到成功**；
+不要用 `RetryUntilSuccessful`——它在单次 tick 内就把重试跑完了，等不到消息。
+
 ---
 
 ## 8. 命令速查 / 文件清单
@@ -382,8 +473,9 @@ sudo apt install ros-humble-behaviortree-cpp    # （推荐）安装 ROS 版 BT.
 ./setup.sh        # 准备 BT.CPP v4 + 克隆官方封装库
 ./build.sh        # colcon 构建全部包
 ./run_demo.sh     # 跑官方 samples（含标准执行器）
-./run_tutorial.sh # 跑本节教学示例（我们写的代码）
-ros2 launch bt_ros2_tutorial tutorial.launch.xml   # 手动启动教学示例
+./run_tutorial.sh # 跑教学示例：Action + Service
+./run_topic.sh    # 跑教学示例：Topic（发布/订阅）
+ros2 launch bt_ros2_tutorial tutorial.launch.xml   # 手动启动 Action+Service 示例
 ```
 
 ```
@@ -391,7 +483,8 @@ ros2_integration/
 ├── README.md            # 本教学文档
 ├── env.sh / setup.sh / build.sh
 ├── run_demo.sh          # 官方 samples
-├── run_tutorial.sh      # 本节教学示例
+├── run_tutorial.sh      # 教学示例：Action + Service
+├── run_topic.sh         # 教学示例：Topic
 └── src/
     ├── BehaviorTree.ROS2/     # setup.sh 克隆的官方库（不入库）
     └── bt_ros2_tutorial/      # 我们的教学代码（本仓库所有）

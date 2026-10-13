@@ -19,6 +19,8 @@ find_package(behaviortree_cpp REQUIRED)
 find_package(behaviortree_ros2 REQUIRED)
 # example_interfaces 提供 AddTwoInts 服务
 find_package(example_interfaces REQUIRED)
+# std_msgs 提供 Float64 / String 等标准消息（Topic 示例用）
+find_package(std_msgs REQUIRED)
 # rosidl 生成器：用来把下面的 .action 编译成 C++ 类型
 find_package(rosidl_default_generators REQUIRED)
 
@@ -64,9 +66,29 @@ target_link_libraries(tutorial_executor
   ${example_interfaces_TARGETS})
 
 # ---------------------------------------------------------------------------
+# 3) Topic 示例：模拟机器人（发布温度 / 订阅指令）
+# ---------------------------------------------------------------------------
+add_executable(robot_node src/robot_node.cpp)
+target_link_libraries(robot_node
+  rclcpp::rclcpp
+  ${std_msgs_TARGETS})
+
+# ---------------------------------------------------------------------------
+# 4) Topic 示例：行为树执行器
+# ---------------------------------------------------------------------------
+add_executable(topic_executor src/topic_executor.cpp)
+target_include_directories(topic_executor PRIVATE include)
+target_link_libraries(topic_executor
+  ${BT_LIBS}
+  rclcpp::rclcpp
+  ament_index_cpp::ament_index_cpp
+  ${std_msgs_TARGETS})
+
+# ---------------------------------------------------------------------------
 # 安装
 # ---------------------------------------------------------------------------
 install(TARGETS countdown_server add_two_ints_server tutorial_executor
+                robot_node topic_executor
   DESTINATION lib/${PROJECT_NAME})
 
 # XML / launch 装到 share，运行期可通过 ament 索引定位

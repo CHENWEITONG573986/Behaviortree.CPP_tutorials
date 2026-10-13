@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  topic_tree.xml —— Topic 通信示例
+
+  结构（Sequence）：
+    1. PrintValue        : 打印开始提示
+    2. CheckTemperature  : 订阅 /temperature，判断温度是否在 [0, 35] 内
+    3. PublishCommand    : 往 /robot_command 发布一条指令
+    4. PrintValue        : 打印结束提示
+
+  注意第 2 步：订阅话题需要“等到有消息”才能判定。这里把它放在最前面，
+  执行器会用“重试 tick”的方式等它成功（CheckTemperature 没有副作用，
+  重复 tick 是安全的），成功后才继续往下走，所以第 3 步只会执行一次。
+-->
+<root BTCPP_format="4">
+  <BehaviorTree ID="MainTree">
+    <Sequence name="root_sequence">
+      <PrintValue        message="=== Topic 示例开始 ===" />
+      <CheckTemperature  topic_name="/temperature" min="0" max="35" />
+      <PublishCommand    topic_name="/robot_command" command="hello, robot!" />
+      <PrintValue        message="温度正常，已向机器人发送指令 ===" />
+    </Sequence>
+  </BehaviorTree>
+</root>

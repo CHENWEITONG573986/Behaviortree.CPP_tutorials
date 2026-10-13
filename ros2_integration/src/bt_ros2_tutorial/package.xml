@@ -22,6 +22,7 @@
   <depend>behaviortree_cpp</depend>       <!-- ros-humble-behaviortree-cpp (v4) -->
   <depend>behaviortree_ros2</depend>      <!-- 官方封装库 -->
   <depend>example_interfaces</depend>     <!-- 提供 AddTwoInts 服务 -->
+  <depend>std_msgs</depend>              <!-- 提供 Float64 / String（Topic 示例用） -->
 
   <!-- 自定义接口的运行期支持 + 声明本包属于“接口包” -->
   <exec_depend>rosidl_default_runtime</exec_depend>
