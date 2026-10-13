@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!-- 教程 01 的行为树：一个顺序节点 Sequence，从左到右依次执行四个子节点 -->
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence name="root_sequence">
+      <CheckBattery   name="battery_ok"/>
+      <OpenGripper    name="open_gripper"/>
+      <ApproachObject name="approach_object"/>
+      <CloseGripper   name="close_gripper"/>
+    </Sequence>
+  </BehaviorTree>
+</root>

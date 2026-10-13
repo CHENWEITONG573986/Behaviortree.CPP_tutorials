@@ -1,0 +1,7 @@
+# CMake 构建产物
+build/
+# 教程 11 运行时会生成（Groot2 日志）
+*.btlog
+minitrace.json
+# VS Code C/C++ 扩展生成的 IntelliSense 缓存（不应提交）
+.vscode/browse.vc.db*

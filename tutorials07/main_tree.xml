@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!-- 主树：引用另外两棵子树 SubTreeA / SubTreeB（它们定义在各自独立的文件里） -->
+<root BTCPP_format="4">
+  <BehaviorTree ID="MainTree">
+    <Sequence>
+      <SaySomething message="starting MainTree" />
+      <SubTree ID="SubTreeA" />
+      <SubTree ID="SubTreeB" />
+    </Sequence>
+  </BehaviorTree>
+</root>
