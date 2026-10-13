@@ -12,20 +12,22 @@
 - `BT::RegisterJsonDefinition<T>()` 让 Groot2 能显示你的自定义类型。
 - `FileLogger2` / `MinitraceLogger` 把状态转移写进文件（`.btlog` / `.json`）。
 
-## ⚠️ 本机前提：需要启用 Groot2 接口
+## Groot2 接口依赖
 
 `Groot2Publisher` 只有在 behaviortree_cpp 编译时打开 `BTCPP_GROOT_INTERFACE` 才存在。
-**本机 vcpkg 装的 behaviortree_cpp 没启用它**（`BTCPP_GROOT_INTERFACE=OFF`），
-所以本目录的 CMake 会打印一条警告并**跳过**编译（其余教程不受影响）。
+本目录的 CMake 会自动探测：
 
-如果想启用，用 vcpkg 的 `groot` feature 重新安装：
+- **已启用** → 正常编译出 `bt_tutorial_11`；
+- **未启用** → 打印一条警告并跳过编译（其余教程不受影响）。
+
+本机已经启用（用 vcpkg 的 `groot` feature 重装过）：
 
 ```bash
-$VCPKG_ROOT/vcpkg install "behaviortree-cpp[groot]"
-# 例：/home/rpp/vcpkg/vcpkg install "behaviortree-cpp[groot]"
+$VCPKG_ROOT/vcpkg install "behaviortree-cpp[groot]" --recurse
+# 例：/home/rpp/vcpkg/vcpkg install "behaviortree-cpp[groot]" --recurse
 ```
 
-它会额外编译 `cppzmq`/`libzmq`。装好后重新配置本目录即可：
+它会额外编译 `cppzmq`/`libzmq`。配置并运行：
 
 ```bash
 cd tutorials11
@@ -34,9 +36,10 @@ cmake --build build
 ./build/bt_tutorial_11
 ```
 
-然后用 Groot2（<https://www.behaviortree.dev/groot>）连接到 `localhost:1667`。
+程序会监听端口 1667，然后在 Groot2（<https://www.behaviortree.dev/groot>）里
+连接到 `localhost:1667`。
 
 ## 说明
 
-官方示例的循环是 `while(true)`（一直等待 Groot2 连接）。为了让程序能自动结束，
-这里的循环改成了固定 3 次。
+和官方示例一致，这里是 `while(true)` **一直循环运行**，等待/服务 Groot2 连接；
+想停止时在终端按 **Ctrl-C**。

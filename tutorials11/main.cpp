@@ -165,15 +165,16 @@ int main()
   BT::FileLogger2 logger2(tree, "t11_groot_howto.btlog");
   BT::MinitraceLogger minilog(tree, "minitrace.json");
 
-  // 官方示例这里是 while(true) 一直跑，等待 Groot2 连接。
-  // 为了这个教程能自动结束，这里只循环 3 次。
-  const int max_iterations = 3;
-  for(int i = 0; i < max_iterations; i++)
+  // 和官方示例一致：一直循环执行，等待/服务 Groot2 连接。
+  // 想停止时在终端按 Ctrl-C。
+  std::cout << "Groot2Publisher 正在监听端口 " << port
+            << "，请在 Groot2 里连接到 localhost:" << port << "（Ctrl-C 退出）" << std::endl;
+  while(true)
   {
     std::cout << "Start" << std::endl;
     cross_door.reset();
     tree.tickWhileRunning();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   }
 
   return 0;
