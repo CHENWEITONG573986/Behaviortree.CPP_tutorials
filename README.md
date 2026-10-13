@@ -99,11 +99,13 @@ cmake --build build
 
 这一章与前面不同：用 **colcon** 构建，并且需要 **BT.CPP 4.6+ 的 ROS 包**
 `ros-humble-behaviortree-cpp`（vcpkg 那版导出的目标名不匹配，不能用）。
-完整说明和一键脚本见 [ros2_integration/README.md](ros2_integration/README.md)：
+完整教学文档见 [ros2_integration/README.md](ros2_integration/README.md)（含逐文件讲解）。
 
 ```bash
 cd ros2_integration
-./setup.sh     # 准备 BT.CPP v4 + 克隆官方仓库（缺依赖时自动下载 deb，免 sudo）
-./build.sh     # colcon build
-./run_demo.sh  # 启动执行器并发送一个行为树目标
+sudo apt install ros-humble-behaviortree-cpp   # （推荐）安装 ROS 版 BT.CPP v4
+./setup.sh        # 准备 BT.CPP v4 + 克隆官方 BehaviorTree.ROS2（缺依赖时自动下载 deb，免 sudo）
+./build.sh        # colcon build
+./run_demo.sh     # 跑官方 samples（标准执行器）
+./run_tutorial.sh # 跑本节教学示例（自写的 Action/Service 节点，注释详尽）
 ```

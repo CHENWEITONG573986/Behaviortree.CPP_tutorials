@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+  countdown_tree.xml —— 本节教学用的行为树
+
+  结构：一个顺序节点（Sequence），从左到右依次执行：
+    1. PrintValue  : 打印一句开始提示（普通节点，不涉及 ROS）
+    2. Countdown   : ROS Action 客户端节点（倒计时）
+    3. PrintValue  : 提示要做加法了
+    4. AddTwoInts  : ROS Service 客户端节点（3+4），结果写进黑板键 sum
+    5. PrintNumber : 打印黑板里的 sum
+    6. PrintValue  : 打印结束提示
+
+  说明：
+    - <Countdown order="5"/>   中的 order 是我们给这个节点新增的输入端口，
+      而动作服务名 action_name 没有写，所以会用注册时给的默认值 "countdown"。
+    - <AddTwoInts A="3" B="4" sum="{sum}"/> 里 sum="{sum}" 表示把输出端口 sum
+      写到黑板的 "sum" 条目；下面 PrintNumber 再通过 val="{sum}" 读出来。
+-->
+<root BTCPP_format="4">
+  <BehaviorTree ID="MainTree">
+    <Sequence name="root_sequence">
+      <PrintValue   message="=== 开始执行行为树 ===" />
+      <Countdown    order="5" />
+      <PrintValue   message="倒计时完成，下面调用 ROS 服务做一次加法" />
+      <AddTwoInts   A="3" B="4" sum="{sum}" />
+      <PrintNumber  val="{sum}" />
+      <PrintValue   message="=== 行为树执行结束 ===" />
+    </Sequence>
+  </BehaviorTree>
+</root>

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+  tutorial.launch.xml —— 一把启动本节需要的三个节点：
+    countdown_server      ：Countdown 动作服务端（普通 ROS 节点）
+    add_two_ints_server   ：AddTwoInts 服务端（普通 ROS 节点）
+    tutorial_executor     ：行为树执行器（会去调用上面两个服务）
+
+  运行：ros2 launch bt_ros2_tutorial tutorial.launch.xml
+-->
+<launch>
+  <node pkg="bt_ros2_tutorial" exec="countdown_server"    output="screen"/>
+  <node pkg="bt_ros2_tutorial" exec="add_two_ints_server" output="screen"/>
+  <node pkg="bt_ros2_tutorial" exec="tutorial_executor"   output="screen"/>
+</launch>

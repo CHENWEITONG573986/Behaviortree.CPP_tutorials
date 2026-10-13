@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!--
+  bt_ros2_tutorial —— BT.CPP v4 + ROS 2 教学示例包
+  依赖的 behaviortree_cpp 来自 ROS 源的 ros-humble-behaviortree-cpp（v4）。
+-->
+<package format="3">
+  <name>bt_ros2_tutorial</name>
+  <version>0.1.0</version>
+  <description>BT.CPP v4 与 ROS 2 结合的教学示例（教学用，注释详尽）</description>
+  <maintainer email="rpp@robotplusplus.com.cn">rpp</maintainer>
+  <license>MIT</license>
+
+  <!-- 构建工具 -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <!-- 因为我们要自己定义一个 Action 接口，需要 rosidl 生成器 -->
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
+
+  <!-- 运行期依赖 -->
+  <depend>rclcpp</depend>
+  <depend>rclcpp_action</depend>
+  <depend>ament_index_cpp</depend>
+  <depend>behaviortree_cpp</depend>       <!-- ros-humble-behaviortree-cpp (v4) -->
+  <depend>behaviortree_ros2</depend>      <!-- 官方封装库 -->
+  <depend>example_interfaces</depend>     <!-- 提供 AddTwoInts 服务 -->
+
+  <!-- 自定义接口的运行期支持 + 声明本包属于“接口包” -->
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

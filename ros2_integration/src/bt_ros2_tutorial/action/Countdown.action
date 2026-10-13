@@ -1,0 +1,12 @@
+# 这是一个 ROS 2 Action 接口定义，用三短横线 "---" 分隔三段：
+#   Goal（目标） / Result（最终结果） / Feedback（过程中的反馈）
+
+# ---- Goal：客户端发给服务端的“要求” ----
+# 从 count 开始，每秒减 1，减到 0 结束。
+int32 count
+---
+# ---- Result：服务端做完后返回的“最终结果” ----
+string message
+---
+# ---- Feedback：服务端在过程中周期性回报的进度 ----
+int32 current
